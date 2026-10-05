@@ -81,6 +81,10 @@ body.reduce-motion *::after {
   padding: 0;
 }
 
+[hidden] {
+  display: none !important;
+}
+
 body {
   background-color: var(--bg-color);
   color: var(--text-main);
@@ -121,10 +125,10 @@ body {
 
 .wordmark {
   font-family: "Helvetica Neue", HelveticaNeue-Bold, Helvetica, Arial, sans-serif;
-  font-size: 19px;
+  font-size: 24px;
   font-weight: 700;
-  letter-spacing: -0.8px;
-  line-height: 1.2;
+  letter-spacing: -0.9px;
+  line-height: 1.15;
   color: var(--text-main);
   text-decoration: none;
   text-transform: none;
@@ -334,6 +338,10 @@ body {
   color: var(--text-muted);
   font-size: 13px;
   letter-spacing: -0.1px;
+}
+
+.all-done-banner[hidden] {
+  display: none !important;
 }
 
 body.theme-dark .all-done-banner {

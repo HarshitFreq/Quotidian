@@ -750,7 +750,7 @@ function renderTodayView() {
     if (isAllDone) {
       allDoneBanner.hidden = false;
       if (allDoneText) {
-        allDoneText.textContent = `All ${totalCount} habits completed for today.`;
+        allDoneText.textContent = 'All habits completed for today.';
       }
     } else {
       allDoneBanner.hidden = true;
