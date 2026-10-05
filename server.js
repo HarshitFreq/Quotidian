@@ -74,7 +74,8 @@ const defaultSettings = {
   reduceMotion: false,
   theme: 'light',
   dateFormat: 'weekday_day_month',
-  confirmPermanentDelete: true
+  confirmPermanentDelete: true,
+  soundEffects: true
 };
 
 function getSettings() {

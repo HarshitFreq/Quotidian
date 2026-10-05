@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Quotidian</title>
-  <link rel="stylesheet" href="styles.css?v=1.5">
+  <link rel="stylesheet" href="styles.css?v=1.6">
 </head>
 <body class="theme-system">
   <!-- Sticky Top Bar -->
@@ -327,6 +327,17 @@
 
         <div class="settings-item">
           <div class="settings-info">
+            <span class="settings-title">Tactile audio feedback</span>
+            <span class="settings-desc">Soft pencil strokes and paper ticks when completing habits</span>
+          </div>
+          <div class="action-btn-group" style="align-items: center; gap: 10px;">
+            <button type="button" id="test-sound-btn" class="btn-secondary" style="font-size: 11px; padding: 3px 8px; height: 26px;">Test</button>
+            <input type="checkbox" id="setting-sound-effects" class="checkbox-input-native" checked>
+          </div>
+        </div>
+
+        <div class="settings-item">
+          <div class="settings-info">
             <span class="settings-title">Color scheme</span>
             <span class="settings-desc">Light (#f7f6f4) or follow system scheme</span>
           </div>
@@ -405,6 +416,6 @@
     </section>
   </main>
 
-  <script src="app.js?v=1.5"></script>
+  <script src="app.js?v=1.6"></script>
 </body>
 </html>

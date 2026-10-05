@@ -58,7 +58,8 @@ const defaultState = {
     reduceMotion: false,
     theme: 'light',
     dateFormat: 'weekday_day_month',
-    confirmPermanentDelete: true
+    confirmPermanentDelete: true,
+    soundEffects: true
   }
 };
 
@@ -139,6 +140,189 @@ function renderHourlyQuote() {
   quoteTextEl.textContent = `“${quote.text}”`;
   quoteAuthorEl.textContent = `— ${quote.author}`;
 }
+
+/**
+ * ============================================================================
+ * Tactile Analog Audio Manager (Web Audio API)
+ * Ultra-subtle, organic acoustic feedback (pencil checkmarks, paper ticks)
+ * ============================================================================
+ */
+class TactileAudioManager {
+  constructor() {
+    this.ctx = null;
+    this.noiseBuffer = null;
+  }
+
+  ensureContext() {
+    if (!this.ctx) {
+      const AudioCtx = window.AudioContext || window.webkitAudioContext;
+      if (AudioCtx) {
+        this.ctx = new AudioCtx();
+      }
+    }
+    if (this.ctx && this.ctx.state === 'suspended') {
+      this.ctx.resume();
+    }
+    return this.ctx;
+  }
+
+  getNoiseBuffer() {
+    if (this.noiseBuffer) return this.noiseBuffer;
+    if (!this.ctx) return null;
+    const bufferSize = this.ctx.sampleRate;
+    const buffer = this.ctx.createBuffer(1, bufferSize, this.ctx.sampleRate);
+    const data = buffer.getChannelData(0);
+    for (let i = 0; i < bufferSize; i++) {
+      data[i] = Math.random() * 2 - 1;
+    }
+    this.noiseBuffer = buffer;
+    return this.noiseBuffer;
+  }
+
+  playPencilCheck() {
+    if (state && state.settings && state.settings.soundEffects === false) return;
+    const ctx = this.ensureContext();
+    if (!ctx) return;
+    const now = ctx.currentTime;
+    const noise = this.getNoiseBuffer();
+    if (!noise) return;
+
+    // Stroke 1: subtle down-stroke (friction + tiny paper tap)
+    const stroke1 = ctx.createBufferSource();
+    stroke1.buffer = noise;
+    const filter1 = ctx.createBiquadFilter();
+    filter1.type = 'bandpass';
+    filter1.frequency.setValueAtTime(2600, now);
+    filter1.Q.setValueAtTime(3.0, now);
+
+    const gain1 = ctx.createGain();
+    gain1.gain.setValueAtTime(0.001, now);
+    gain1.gain.linearRampToValueAtTime(0.08, now + 0.004);
+    gain1.gain.exponentialRampToValueAtTime(0.001, now + 0.026);
+
+    stroke1.connect(filter1);
+    filter1.connect(gain1);
+    gain1.connect(ctx.destination);
+    stroke1.start(now);
+    stroke1.stop(now + 0.03);
+
+    // Tip tap on paper
+    const oscTap = ctx.createOscillator();
+    const tapGain = ctx.createGain();
+    oscTap.type = 'sine';
+    oscTap.frequency.setValueAtTime(140, now);
+    oscTap.frequency.exponentialRampToValueAtTime(45, now + 0.022);
+    tapGain.gain.setValueAtTime(0.05, now);
+    tapGain.gain.exponentialRampToValueAtTime(0.001, now + 0.022);
+    oscTap.connect(tapGain);
+    tapGain.connect(ctx.destination);
+    oscTap.start(now);
+    oscTap.stop(now + 0.025);
+
+    // Stroke 2: upward checkmark flick (crisp, higher frequency)
+    const stroke2Time = now + 0.026;
+    const stroke2 = ctx.createBufferSource();
+    stroke2.buffer = noise;
+    const filter2 = ctx.createBiquadFilter();
+    filter2.type = 'bandpass';
+    filter2.frequency.setValueAtTime(3800, stroke2Time);
+    filter2.Q.setValueAtTime(3.5, stroke2Time);
+
+    const gain2 = ctx.createGain();
+    gain2.gain.setValueAtTime(0.001, stroke2Time);
+    gain2.gain.linearRampToValueAtTime(0.11, stroke2Time + 0.005);
+    gain2.gain.exponentialRampToValueAtTime(0.001, stroke2Time + 0.045);
+
+    stroke2.connect(filter2);
+    filter2.connect(gain2);
+    gain2.connect(ctx.destination);
+    stroke2.start(stroke2Time);
+    stroke2.stop(stroke2Time + 0.05);
+  }
+
+  playPencilLift() {
+    if (state && state.settings && state.settings.soundEffects === false) return;
+    const ctx = this.ensureContext();
+    if (!ctx) return;
+    const now = ctx.currentTime;
+    const noise = this.getNoiseBuffer();
+    if (!noise) return;
+
+    const src = ctx.createBufferSource();
+    src.buffer = noise;
+    const filter = ctx.createBiquadFilter();
+    filter.type = 'bandpass';
+    filter.frequency.setValueAtTime(1800, now);
+    filter.Q.setValueAtTime(2.2, now);
+
+    const gain = ctx.createGain();
+    gain.gain.setValueAtTime(0.001, now);
+    gain.gain.linearRampToValueAtTime(0.045, now + 0.004);
+    gain.gain.exponentialRampToValueAtTime(0.001, now + 0.03);
+
+    src.connect(filter);
+    filter.connect(gain);
+    gain.connect(ctx.destination);
+    src.start(now);
+    src.stop(now + 0.035);
+  }
+
+  playStepperClick(isIncrement = true) {
+    if (state && state.settings && state.settings.soundEffects === false) return;
+    const ctx = this.ensureContext();
+    if (!ctx) return;
+    const now = ctx.currentTime;
+    const noise = this.getNoiseBuffer();
+    if (!noise) return;
+
+    const baseFreq = isIncrement ? 4200 : 3400;
+    const src = ctx.createBufferSource();
+    src.buffer = noise;
+    const filter = ctx.createBiquadFilter();
+    filter.type = 'bandpass';
+    filter.frequency.setValueAtTime(baseFreq, now);
+    filter.Q.setValueAtTime(4.0, now);
+
+    const gain = ctx.createGain();
+    gain.gain.setValueAtTime(0.001, now);
+    gain.gain.linearRampToValueAtTime(0.055, now + 0.003);
+    gain.gain.exponentialRampToValueAtTime(0.001, now + 0.022);
+
+    src.connect(filter);
+    filter.connect(gain);
+    gain.connect(ctx.destination);
+    src.start(now);
+    src.stop(now + 0.025);
+  }
+
+  playAllDone() {
+    if (state && state.settings && state.settings.soundEffects === false) return;
+    this.playPencilCheck();
+
+    const ctx = this.ensureContext();
+    if (!ctx) return;
+    const now = ctx.currentTime + 0.06;
+
+    [659.25, 987.77].forEach((freq, idx) => {
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      osc.type = 'sine';
+      osc.frequency.setValueAtTime(freq, now + idx * 0.04);
+
+      const noteTime = now + idx * 0.04;
+      gain.gain.setValueAtTime(0.001, noteTime);
+      gain.gain.linearRampToValueAtTime(0.035, noteTime + 0.02);
+      gain.gain.exponentialRampToValueAtTime(0.0001, noteTime + 0.42);
+
+      osc.connect(gain);
+      gain.connect(ctx.destination);
+      osc.start(noteTime);
+      osc.stop(noteTime + 0.45);
+    });
+  }
+}
+
+const audioManager = new TactileAudioManager();
 
 /**
  * ============================================================================
@@ -926,10 +1110,29 @@ function toggleHabitCompletion(habitId, dateStr) {
   if (!habit.completions) habit.completions = {};
   const current = habit.completions[dateStr] || 0;
 
+  let isNowComplete = false;
   if (habit.target.type === 'count') {
-    habit.completions[dateStr] = current >= habit.target.count ? 0 : habit.target.count;
+    const nextVal = current >= habit.target.count ? 0 : habit.target.count;
+    habit.completions[dateStr] = nextVal;
+    isNowComplete = nextVal >= habit.target.count;
   } else {
-    habit.completions[dateStr] = current >= 1 ? 0 : 1;
+    const nextVal = current >= 1 ? 0 : 1;
+    habit.completions[dateStr] = nextVal;
+    isNowComplete = nextVal >= 1;
+  }
+
+  // Tactile Audio Feedback
+  if (isNowComplete) {
+    const refDate = getEffectiveDate();
+    const scheduled = state.habits.filter((h) => !h.archived && isHabitScheduledOnDate(h, refDate));
+    const allDone = scheduled.length > 0 && scheduled.every((h) => isHabitCompletedOnDate(h, dateStr));
+    if (allDone) {
+      audioManager.playAllDone();
+    } else {
+      audioManager.playPencilCheck();
+    }
+  } else {
+    audioManager.playPencilLift();
   }
 
   habit.bestStreak = computeBestStreak(habit, getEffectiveDate());
@@ -951,6 +1154,20 @@ function updateHabitCount(habitId, dateStr, delta) {
   const current = habit.completions[dateStr] || 0;
   const next = Math.max(0, Math.min(10, current + delta));
   habit.completions[dateStr] = next;
+
+  // Tactile Audio Feedback
+  if (next >= habit.target.count && current < habit.target.count) {
+    const refDate = getEffectiveDate();
+    const scheduled = state.habits.filter((h) => !h.archived && isHabitScheduledOnDate(h, refDate));
+    const allDone = scheduled.length > 0 && scheduled.every((h) => isHabitCompletedOnDate(h, dateStr));
+    if (allDone) {
+      audioManager.playAllDone();
+    } else {
+      audioManager.playPencilCheck();
+    }
+  } else {
+    audioManager.playStepperClick(delta > 0);
+  }
 
   habit.bestStreak = computeBestStreak(habit, getEffectiveDate());
   saveState();
@@ -1866,7 +2083,7 @@ function renderPerformanceTable() {
  * ============================================================================
  */
 function renderSettingsView() {
-  const { weekStartsOn, showArchivedInHabits, density, reduceMotion, theme, dateFormat, confirmPermanentDelete } = state.settings;
+  const { weekStartsOn, showArchivedInHabits, density, reduceMotion, soundEffects, theme, dateFormat, confirmPermanentDelete } = state.settings;
 
   const weekSelect = document.getElementById('setting-week-start');
   if (weekSelect) weekSelect.value = weekStartsOn;
@@ -1879,6 +2096,9 @@ function renderSettingsView() {
 
   const motionCb = document.getElementById('setting-reduce-motion');
   if (motionCb) motionCb.checked = reduceMotion;
+
+  const soundCb = document.getElementById('setting-sound-effects');
+  if (soundCb) soundCb.checked = soundEffects !== false;
 
   const themeSelect = document.getElementById('setting-theme');
   if (themeSelect) themeSelect.value = theme;
@@ -1915,6 +2135,19 @@ function bindSettingsListeners() {
     saveState();
     applySettingsClasses();
     apiCall('/api/settings', { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(state.settings) });
+  });
+
+  document.getElementById('setting-sound-effects')?.addEventListener('change', (e) => {
+    state.settings.soundEffects = e.target.checked;
+    saveState();
+    apiCall('/api/settings', { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(state.settings) });
+    if (e.target.checked) {
+      audioManager.playPencilCheck();
+    }
+  });
+
+  document.getElementById('test-sound-btn')?.addEventListener('click', () => {
+    audioManager.playPencilCheck();
   });
 
   document.getElementById('setting-theme')?.addEventListener('change', (e) => {
