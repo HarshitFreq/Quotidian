@@ -385,8 +385,11 @@ body.theme-dark .habit-row.focused {
   align-items: center;
   justify-content: center;
   cursor: pointer;
-  padding-top: 2px;
+  padding: 2px;
+  margin: -2px;
   user-select: none;
+  position: relative;
+  border-radius: 4px;
 }
 
 .checkbox-input {
@@ -398,18 +401,81 @@ body.theme-dark .habit-row.focused {
 }
 
 .checkbox-box {
-  width: 16px;
-  height: 16px;
-  border: 1px solid var(--text-main);
-  border-radius: 2px;
+  width: 18px;
+  height: 18px;
+  border: 1.5px solid rgba(26, 26, 26, 0.3);
+  border-radius: 3px;
   background-color: transparent;
   display: inline-flex;
   align-items: center;
   justify-content: center;
+  position: relative;
+  box-sizing: border-box;
+  transition: 
+    background-color 0.12s cubic-bezier(0.16, 1, 0.3, 1),
+    border-color 0.12s cubic-bezier(0.16, 1, 0.3, 1),
+    transform 0.08s ease;
 }
 
+body.theme-dark .checkbox-box {
+  border-color: rgba(243, 241, 236, 0.32);
+}
+
+@media (prefers-color-scheme: dark) {
+  body.theme-system .checkbox-box {
+    border-color: rgba(243, 241, 236, 0.32);
+  }
+}
+
+/* Hover state */
+.checkbox-container:hover .checkbox-box {
+  border-color: var(--text-main);
+  background-color: rgba(0, 0, 0, 0.03);
+}
+
+body.theme-dark .checkbox-container:hover .checkbox-box {
+  background-color: rgba(255, 255, 255, 0.04);
+}
+
+@media (prefers-color-scheme: dark) {
+  body.theme-system .checkbox-container:hover .checkbox-box {
+    background-color: rgba(255, 255, 255, 0.04);
+  }
+}
+
+/* Active press tactile feedback */
+.checkbox-container:active .checkbox-box {
+  transform: scale(0.9);
+}
+
+/* Checked state */
 .checkbox-input:checked + .checkbox-box {
   background-color: var(--text-main);
+  border-color: var(--text-main);
+}
+
+/* Checkmark glyph */
+.checkbox-box::after {
+  content: "";
+  display: block;
+  width: 4.5px;
+  height: 8.5px;
+  border: solid var(--bg-color);
+  border-width: 0 1.8px 1.8px 0;
+  transform: rotate(45deg) translate(-0.5px, -1px) scale(0);
+  opacity: 0;
+  transition: transform 0.14s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.1s ease;
+}
+
+.checkbox-input:checked + .checkbox-box::after {
+  transform: rotate(45deg) translate(-0.5px, -1px) scale(1);
+  opacity: 1;
+}
+
+/* Focus visible accessibility */
+.checkbox-input:focus-visible + .checkbox-box {
+  outline: 2px solid var(--text-main);
+  outline-offset: 2px;
 }
 
 /* Stepper for Count Targets */

@@ -1532,14 +1532,25 @@ function renderPastDayInspector(date) {
         stepper.appendChild(incBtn);
         li.appendChild(stepper);
       } else {
+        const label = document.createElement('label');
+        label.className = 'checkbox-container';
+        label.setAttribute('aria-label', `Mark ${habit.name} complete`);
+
         const cb = document.createElement('input');
         cb.type = 'checkbox';
+        cb.className = 'checkbox-input';
         cb.checked = isDone;
         cb.addEventListener('change', () => {
           toggleHabitCompletion(habit.id, dateStr);
           renderReviewView();
         });
-        li.appendChild(cb);
+
+        const box = document.createElement('span');
+        box.className = 'checkbox-box';
+
+        label.appendChild(cb);
+        label.appendChild(box);
+        li.appendChild(label);
       }
 
       list.appendChild(li);
