@@ -795,7 +795,7 @@ async function syncFromBackend() {
  */
 function getActiveRoute() {
   const hash = window.location.hash.toLowerCase().replace('#', '');
-  if (['today', 'habits', 'review', 'settings'].includes(hash)) {
+  if (['landing', 'today', 'habits', 'review', 'settings'].includes(hash)) {
     return hash;
   }
   return 'today';
@@ -817,12 +817,38 @@ function handleRoute() {
   renderActiveView(route);
 }
 
+function renderLandingView() {
+  // Reset demo checkboxes on landing view visit
+  document.querySelectorAll('.demo-checkbox').forEach((cb) => {
+    cb.checked = false;
+    const row = cb.closest('.landing-demo-row');
+    if (row) row.classList.remove('completed');
+  });
+}
+
+function bindLandingListeners() {
+  document.querySelectorAll('.demo-checkbox').forEach((cb) => {
+    cb.addEventListener('change', () => {
+      const row = cb.closest('.landing-demo-row');
+      if (row) {
+        row.classList.toggle('completed', cb.checked);
+      }
+      if (cb.checked) {
+        audioManager.playPencilCheck();
+      } else {
+        audioManager.playPencilLift();
+      }
+    });
+  });
+}
+
 function renderActiveView(route = getActiveRoute()) {
   applySettingsClasses();
   updateTopBarCount();
   updateHabitsLibraryCounts();
 
-  if (route === 'today') renderTodayView();
+  if (route === 'landing') renderLandingView();
+  else if (route === 'today') renderTodayView();
   else if (route === 'habits') renderHabitsView();
   else if (route === 'review') renderReviewView();
   else if (route === 'settings') renderSettingsView();
@@ -2640,14 +2666,21 @@ function init() {
   window.addEventListener('hashchange', handleRoute);
   bindTodayListeners();
   bindHabitsListeners();
+  bindLandingListeners();
   bindAddForms();
   bindSettingsListeners();
   bindKeyboardShortcuts();
   bindHeatmapListeners();
 
-  // If no hash in URL, default to #today
+  // If no hash in URL, show landing page for first-time visitors or default to #today
   if (!window.location.hash) {
-    window.location.hash = '#today';
+    const hasVisited = localStorage.getItem('quotidian_has_visited');
+    if (!hasVisited) {
+      localStorage.setItem('quotidian_has_visited', 'true');
+      window.location.hash = '#landing';
+    } else {
+      window.location.hash = '#today';
+    }
   } else {
     handleRoute();
   }

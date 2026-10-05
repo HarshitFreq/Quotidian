@@ -4,19 +4,20 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Quotidian</title>
-  <link rel="stylesheet" href="styles.css?v=1.6">
+  <link rel="stylesheet" href="styles.css?v=1.7">
 </head>
 <body class="theme-system">
   <!-- Sticky Top Bar -->
   <div class="top-bar-wrapper">
     <header class="top-bar">
       <div class="top-bar-left">
-        <a href="#today" class="wordmark">Quotidian</a>
+        <a href="#landing" class="wordmark" title="Quotidian">Quotidian</a>
         <nav class="nav-links" aria-label="Views">
           <a href="#today" class="nav-link active" data-view="today">Today</a>
           <a href="#habits" class="nav-link" data-view="habits">Habits</a>
           <a href="#review" class="nav-link" data-view="review">Review</a>
           <a href="#settings" class="nav-link" data-view="settings">Settings</a>
+          <a href="#landing" class="nav-link" data-view="landing">About</a>
         </nav>
       </div>
       <div class="top-bar-right">
@@ -26,8 +27,167 @@
   </div>
 
   <main class="container">
+    <!-- VIEW 0: LANDING / ABOUT -->
+    <section id="view-landing" class="view-panel">
+      <!-- Hero -->
+      <div class="landing-hero">
+        <div class="landing-eyebrow">A Quiet Instrument for Daily Life</div>
+        <h1 class="landing-title">Track your days with quiet clarity.</h1>
+        <p class="landing-lead">
+          No streak anxiety. No loud notification badges. No corporate gamification.
+          Quotidian is an analog-inspired, distraction-free habit tracker and daily reflection journal built for calm, intentional living.
+        </p>
+        <div class="landing-actions">
+          <a href="#today" class="btn-primary landing-cta-btn">Open Tracker →</a>
+          <a href="#habits" class="btn-secondary landing-secondary-btn">Browse Habits</a>
+        </div>
+      </div>
+
+      <!-- Live Interactive Teaser Card -->
+      <div class="landing-card-section">
+        <div class="landing-card-header">
+          <span class="landing-card-tag">Interactive Preview</span>
+          <span class="landing-card-hint">Click below to experience the tactile pencil tick</span>
+        </div>
+        <div class="landing-card">
+          <ul class="habit-list" style="margin-bottom: 0;">
+            <li class="habit-row tick-stone landing-demo-row">
+              <div class="habit-main">
+                <label class="checkbox-container" aria-label="Mark Morning meditation complete">
+                  <input type="checkbox" class="checkbox-input demo-checkbox">
+                  <span class="checkbox-box"></span>
+                </label>
+                <div class="habit-content">
+                  <span class="habit-name">Morning meditation</span>
+                  <span class="habit-note">15 minutes mindfulness</span>
+                </div>
+              </div>
+              <div class="habit-meta">
+                <span class="habit-streak">21d</span>
+              </div>
+            </li>
+            <li class="habit-row tick-ink landing-demo-row">
+              <div class="habit-main">
+                <label class="checkbox-container" aria-label="Mark Deep work focus block complete">
+                  <input type="checkbox" class="checkbox-input demo-checkbox">
+                  <span class="checkbox-box"></span>
+                </label>
+                <div class="habit-content">
+                  <span class="habit-name">Deep work focus block</span>
+                  <span class="habit-note">90 minutes uninterrupted craft</span>
+                </div>
+              </div>
+              <div class="habit-meta">
+                <span class="habit-streak">14d</span>
+              </div>
+            </li>
+            <li class="habit-row tick-olive landing-demo-row">
+              <div class="habit-main">
+                <label class="checkbox-container" aria-label="Mark Read 20 pages complete">
+                  <input type="checkbox" class="checkbox-input demo-checkbox">
+                  <span class="checkbox-box"></span>
+                </label>
+                <div class="habit-content">
+                  <span class="habit-name">Read 20 pages</span>
+                  <span class="habit-note">Philosophy or literature</span>
+                </div>
+              </div>
+              <div class="habit-meta">
+                <span class="habit-streak">32d</span>
+              </div>
+            </li>
+          </ul>
+        </div>
+      </div>
+
+      <!-- Principles / Manifesto -->
+      <div class="landing-section">
+        <h2 class="landing-section-title">The Philosophy of Quotidian</h2>
+        <div class="landing-principles-grid">
+          <div class="principle-item">
+            <span class="principle-num">01</span>
+            <h3 class="principle-title">Deliberate Restraint</h3>
+            <p class="principle-desc">
+              Inspired by Dieter Rams and Swiss editorial print, Quotidian removes every non-essential pixel. No confetti, no badges, no noise.
+            </p>
+          </div>
+          <div class="principle-item">
+            <span class="principle-num">02</span>
+            <h3 class="principle-title">Tactile Analog Audio</h3>
+            <p class="principle-desc">
+              Synthesized live with the Web Audio API, every checkmark produces an organic 2B graphite pencil stroke against paper.
+            </p>
+          </div>
+          <div class="principle-item">
+            <span class="principle-num">03</span>
+            <h3 class="principle-title">Time-of-Day Cadence</h3>
+            <p class="principle-desc">
+              Focus only on what is scheduled for right now—Morning, Afternoon, or Evening. Let the rest of the day wait until its time.
+            </p>
+          </div>
+          <div class="principle-item">
+            <span class="principle-num">04</span>
+            <h3 class="principle-title">Private & Local-First</h3>
+            <p class="principle-desc">
+              Your habits and daily reflection notes are stored in a local SQLite database. No tracking, no surveillance, full export to JSON or CSV anytime.
+            </p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Feature Grid -->
+      <div class="landing-section">
+        <h2 class="landing-section-title">Essential Instruments</h2>
+        <div class="landing-features-grid">
+          <div class="feature-card">
+            <h3 class="feature-card-title">Yearly GitHub-Style Heatmap</h3>
+            <p class="feature-card-desc">
+              Visualize 365 days of consistency across your entire routine or isolated down to a single habit.
+            </p>
+          </div>
+          <div class="feature-card">
+            <h3 class="feature-card-title">Hourly Literary Quotes</h3>
+            <p class="feature-card-desc">
+              Reflections on patience, craft, and consistency that evolve every hour from Seneca to Annie Dillard.
+            </p>
+          </div>
+          <div class="feature-card">
+            <h3 class="feature-card-title">Daily Reflection Journal</h3>
+            <p class="feature-card-desc">
+              Press <kbd class="kbd-hint">o</kbd> anywhere on Today to record gratitude, insights, and lessons alongside your checkmarks.
+            </p>
+          </div>
+          <div class="feature-card">
+            <h3 class="feature-card-title">Full Keyboard Velocity</h3>
+            <p class="feature-card-desc">
+              Navigate habits with <kbd class="kbd-hint">j</kbd> / <kbd class="kbd-hint">k</kbd>, complete with <kbd class="kbd-hint">x</kbd> or <kbd class="kbd-hint">Space</kbd>, switch views with number keys.
+            </p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Bottom Call To Action -->
+      <div class="landing-cta-box">
+        <h2 class="landing-cta-title">Begin your daily practice.</h2>
+        <p class="landing-cta-desc">Everything you need to build steady habits, nothing you don't.</p>
+        <a href="#today" class="btn-primary landing-cta-btn">Open Quotidian Tracker →</a>
+      </div>
+
+      <!-- Landing Footer -->
+      <footer class="landing-footer">
+        <div class="landing-footer-brand">Quotidian · Distraction-free daily tracker</div>
+        <div class="landing-footer-links">
+          <a href="#today">Today</a>
+          <a href="#habits">Habits</a>
+          <a href="#review">Review</a>
+          <a href="#settings">Settings</a>
+          <a href="https://github.com/HarshitFreq/Quotidian" target="_blank" rel="noopener">GitHub</a>
+        </div>
+      </footer>
+    </section>
+
     <!-- VIEW 1: TODAY -->
-    <section id="view-today" class="view-panel active">
+    <section id="view-today" class="view-panel">
       <div class="today-header">
         <div id="today-date-line" class="today-date-line"></div>
         <div class="progress-container">
@@ -416,6 +576,6 @@
     </section>
   </main>
 
-  <script src="app.js?v=1.6"></script>
+  <script src="app.js?v=1.7"></script>
 </body>
 </html>
