@@ -355,19 +355,20 @@ body.theme-dark .all-done-banner {
   display: flex;
   align-items: flex-start;
   justify-content: space-between;
-  padding: var(--row-padding-y) 0;
+  padding: var(--row-padding-y) 0 var(--row-padding-y) 12px;
   border-bottom: 1px solid var(--border-hairline);
+  border-left: 1px solid transparent;
   gap: var(--row-gap);
   position: relative;
 }
 
 /* 1px Color Tick */
-.habit-row.tick-stone { border-left: 1px solid var(--tick-stone); padding-left: 12px; }
-.habit-row.tick-ink { border-left: 1px solid var(--tick-ink); padding-left: 12px; }
-.habit-row.tick-olive { border-left: 1px solid var(--tick-olive); padding-left: 12px; }
-.habit-row.tick-rust { border-left: 1px solid var(--tick-rust); padding-left: 12px; }
-.habit-row.tick-blue { border-left: 1px solid var(--tick-blue); padding-left: 12px; }
-.habit-row.tick-sand { border-left: 1px solid var(--tick-sand); padding-left: 12px; }
+.habit-row.tick-stone { border-left-color: var(--tick-stone); }
+.habit-row.tick-ink { border-left-color: var(--tick-ink); }
+.habit-row.tick-olive { border-left-color: var(--tick-olive); }
+.habit-row.tick-rust { border-left-color: var(--tick-rust); }
+.habit-row.tick-blue { border-left-color: var(--tick-blue); }
+.habit-row.tick-sand { border-left-color: var(--tick-sand); }
 
 .habit-row.focused {
   background-color: rgba(0, 0, 0, 0.02);

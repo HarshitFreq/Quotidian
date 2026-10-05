@@ -278,7 +278,7 @@ function seedSampleData() {
       schedule: { type: 'everyday', days: [0, 1, 2, 3, 4, 5, 6] },
       target: { type: 'boolean', count: 1 },
       group: 'Evening',
-      color: null,
+      color: 'sand',
       startDate: getPastStr(45),
       archived: 0,
       order: 6,
