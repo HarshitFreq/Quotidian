@@ -50,6 +50,7 @@ const MAX_ACTIVE_HABITS = 24;
 const defaultState = {
   version: SCHEMA_VERSION,
   habits: [],
+  notes: {}, // "YYYY-MM-DD" -> string note
   settings: {
     weekStartsOn: 'monday',
     showArchivedInHabits: true,
@@ -69,7 +70,21 @@ function getEffectiveDate() {
   return DEV_DATE_OVERRIDE ? new Date(DEV_DATE_OVERRIDE) : new Date();
 }
 
+/**
+ * Returns the current time of day bucket: 'Morning', 'Afternoon', or 'Evening'.
+ * 05:00 - 11:59 -> Morning
+ * 12:00 - 16:59 -> Afternoon
+ * 17:00 - 04:59 -> Evening
+ */
+function getCurrentTimeOfDay(date = getEffectiveDate()) {
+  const h = date.getHours();
+  if (h >= 5 && h < 12) return 'Morning';
+  if (h >= 12 && h < 17) return 'Afternoon';
+  return 'Evening';
+}
+
 let state;
+let todayFilter = 'all'; // 'all' | 'remaining' | 'now'
 let selectedPastDate = null;
 let heatmapYear = null;
 let selectedHeatmapHabitId = 'all';
@@ -470,7 +485,8 @@ function loadState() {
     if (!raw) {
       return {
         ...defaultState,
-        habits: generateSampleData()
+        habits: generateSampleData(),
+        notes: {}
       };
     }
     const parsed = JSON.parse(raw);
@@ -482,6 +498,7 @@ function loadState() {
         ...defaultState,
         ...parsed,
         habits,
+        notes: parsed.notes || {},
         settings: { ...defaultState.settings, ...(parsed.settings || {}) }
       };
     }
@@ -490,7 +507,8 @@ function loadState() {
   }
   return {
     ...defaultState,
-    habits: generateSampleData()
+    habits: generateSampleData(),
+    notes: {}
   };
 }
 
@@ -528,6 +546,7 @@ async function syncFromBackend() {
     state = {
       ...defaultState,
       ...data,
+      notes: data.notes || state.notes || {},
       settings: { ...defaultState.settings, ...(data.settings || {}) }
     };
     saveState();
@@ -607,6 +626,7 @@ function updateTopBarCount() {
 function renderTodayView() {
   const today = getEffectiveDate();
   const todayStr = toLocalDateString(today);
+  const currentTimePeriod = getCurrentTimeOfDay(today);
 
   // Date Header
   const dateLine = document.getElementById('today-date-line');
@@ -614,13 +634,20 @@ function renderTodayView() {
     dateLine.textContent = formatUserDate(today);
   }
 
-  // Active scheduled habits
-  const scheduledHabits = state.habits
+  // Active scheduled habits for today
+  const allScheduledHabits = state.habits
     .filter((h) => !h.archived && isHabitScheduledOnDate(h, today))
     .sort((a, b) => (a.order || 0) - (b.order || 0));
 
-  const completedCount = scheduledHabits.filter((h) => isHabitCompletedOnDate(h, todayStr)).length;
-  const totalCount = scheduledHabits.length;
+  const totalCount = allScheduledHabits.length;
+  const completedCount = allScheduledHabits.filter((h) => isHabitCompletedOnDate(h, todayStr)).length;
+  const remainingCount = totalCount - completedCount;
+
+  const nowHabits = allScheduledHabits.filter((h) => {
+    const grp = h.group || 'Anytime';
+    return grp === currentTimePeriod || grp === 'Anytime';
+  });
+  const nowCount = nowHabits.length;
 
   // Progress UI
   const progressText = document.getElementById('today-progress-text');
@@ -629,6 +656,48 @@ function renderTodayView() {
     progressText.textContent = `${completedCount} of ${totalCount}`;
     const pct = totalCount > 0 ? (completedCount / totalCount) * 100 : 0;
     progressFill.style.width = `${pct}%`;
+  }
+
+  // Update Filter Tabs Counts and Active State
+  const countAllEl = document.getElementById('filter-count-all');
+  const countRemEl = document.getElementById('filter-count-remaining');
+  const countNowEl = document.getElementById('filter-count-now');
+  if (countAllEl) countAllEl.textContent = totalCount;
+  if (countRemEl) countRemEl.textContent = remainingCount;
+  if (countNowEl) countNowEl.textContent = nowCount;
+
+  document.querySelectorAll('.filter-tab').forEach((tab) => {
+    tab.classList.toggle('active', tab.dataset.filter === todayFilter);
+  });
+
+  // Daily Reflection Note
+  const dailyNoteInput = document.getElementById('today-daily-note-input');
+  if (dailyNoteInput) {
+    if (document.activeElement !== dailyNoteInput) {
+      dailyNoteInput.value = (state.notes && state.notes[todayStr]) || '';
+    }
+  }
+
+  // Quiet All Done banner
+  const allDoneBanner = document.getElementById('today-all-done');
+  const allDoneText = document.getElementById('all-done-text');
+  if (allDoneBanner) {
+    if (totalCount > 0 && completedCount === totalCount) {
+      allDoneBanner.hidden = false;
+      if (allDoneText) {
+        allDoneText.textContent = `All ${totalCount} habits completed for today.`;
+      }
+    } else {
+      allDoneBanner.hidden = true;
+    }
+  }
+
+  // Filter habits according to todayFilter
+  let displayedHabits = allScheduledHabits;
+  if (todayFilter === 'remaining') {
+    displayedHabits = allScheduledHabits.filter((h) => !isHabitCompletedOnDate(h, todayStr));
+  } else if (todayFilter === 'now') {
+    displayedHabits = nowHabits;
   }
 
   const container = document.getElementById('today-groups-container');
@@ -643,8 +712,14 @@ function renderTodayView() {
     return;
   }
 
-  if (scheduledHabits.length === 0) {
-    emptyState.textContent = 'Nothing for today.';
+  if (displayedHabits.length === 0) {
+    if (todayFilter === 'remaining' && totalCount > 0) {
+      emptyState.textContent = 'All remaining habits are complete for today.';
+    } else if (todayFilter === 'now') {
+      emptyState.textContent = `No habits scheduled for ${currentTimePeriod.toLowerCase()}.`;
+    } else {
+      emptyState.textContent = 'Nothing for today.';
+    }
     emptyState.hidden = false;
     return;
   }
@@ -656,7 +731,7 @@ function renderTodayView() {
   const habitElements = [];
 
   groups.forEach((groupName) => {
-    const groupHabits = scheduledHabits.filter((h) => (h.group || 'Anytime') === groupName);
+    const groupHabits = displayedHabits.filter((h) => (h.group || 'Anytime') === groupName);
     if (groupHabits.length === 0) return;
 
     const groupHeading = document.createElement('h3');
@@ -1324,11 +1399,31 @@ function renderPastDayInspector(date) {
   const panel = document.getElementById('past-day-inspector');
   const title = document.getElementById('inspector-date-title');
   const list = document.getElementById('inspector-habits-list');
+  const noteInput = document.getElementById('inspector-daily-note-input');
   if (!panel || !list) return;
 
   const dateStr = toLocalDateString(date);
   title.textContent = `Completions for ${formatUserDate(date)}`;
   list.innerHTML = '';
+
+  if (noteInput) {
+    noteInput.value = (state.notes && state.notes[dateStr]) || '';
+    noteInput.oninput = (e) => {
+      const val = e.target.value.trim();
+      state.notes = state.notes || {};
+      if (val) {
+        state.notes[dateStr] = val;
+      } else {
+        delete state.notes[dateStr];
+      }
+      saveState();
+      apiCall(`/api/notes/${dateStr}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ note: val })
+      });
+    };
+  }
 
   const activeHabits = state.habits.filter((h) => !h.archived);
   const scheduled = activeHabits.filter((h) => isHabitScheduledOnDate(h, date));
@@ -2004,11 +2099,19 @@ function bindAddForms() {
 
 /**
  * ============================================================================
- * Keyboard Navigation (j/k, x/Space, n, 1..4)
+ * Keyboard Navigation (j/k, x/Space, n, f, o, 1..4)
  * ============================================================================
  */
 function bindKeyboardShortcuts() {
   document.addEventListener('keydown', (e) => {
+    // Escape un-focuses any active input
+    if (e.key === 'Escape') {
+      if (document.activeElement && typeof document.activeElement.blur === 'function') {
+        document.activeElement.blur();
+      }
+      return;
+    }
+
     // Ignore keyboard shortcuts when typing in inputs/textareas/selects
     const tag = (e.target.tagName || '').toLowerCase();
     if (tag === 'input' || tag === 'textarea' || tag === 'select') return;
@@ -2024,6 +2127,24 @@ function bindKeyboardShortcuts() {
 
     // Only active on Today view
     if (getActiveRoute() !== 'today') return;
+
+    // 'f': Cycle filters (All -> Remaining -> Now -> All)
+    if (e.key === 'f') {
+      e.preventDefault();
+      const order = ['all', 'remaining', 'now'];
+      const nextIdx = (order.indexOf(todayFilter) + 1) % order.length;
+      todayFilter = order[nextIdx];
+      renderTodayView();
+      return;
+    }
+
+    // 'o': Focus daily reflection note
+    if (e.key === 'o') {
+      e.preventDefault();
+      const noteInput = document.getElementById('today-daily-note-input');
+      noteInput?.focus();
+      return;
+    }
 
     const rows = Array.from(document.querySelectorAll('#today-groups-container .habit-row'));
     if (rows.length === 0) return;
@@ -2068,6 +2189,53 @@ function bindKeyboardShortcuts() {
   });
 }
 
+function bindTodayListeners() {
+  document.querySelectorAll('.filter-tab').forEach((tab) => {
+    tab.addEventListener('click', () => {
+      todayFilter = tab.dataset.filter || 'all';
+      renderTodayView();
+    });
+  });
+
+  const dailyNoteInput = document.getElementById('today-daily-note-input');
+  if (dailyNoteInput) {
+    const saveDailyNote = () => {
+      const todayStr = toLocalDateString(getEffectiveDate());
+      const val = dailyNoteInput.value.trim();
+      state.notes = state.notes || {};
+      if (val) {
+        state.notes[todayStr] = val;
+      } else {
+        delete state.notes[todayStr];
+      }
+      saveState();
+      apiCall(`/api/notes/${todayStr}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ note: val })
+      });
+    };
+
+    dailyNoteInput.addEventListener('input', () => {
+      const todayStr = toLocalDateString(getEffectiveDate());
+      state.notes = state.notes || {};
+      const val = dailyNoteInput.value.trim();
+      if (val) {
+        state.notes[todayStr] = val;
+      } else {
+        delete state.notes[todayStr];
+      }
+    });
+
+    dailyNoteInput.addEventListener('blur', saveDailyNote);
+    dailyNoteInput.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') {
+        dailyNoteInput.blur();
+      }
+    });
+  }
+}
+
 function highlightFocusedRow(rows) {
   rows.forEach((r, i) => {
     r.classList.toggle('focused', i === focusedHabitIndex);
@@ -2106,6 +2274,7 @@ function bindHeatmapListeners() {
  */
 function init() {
   window.addEventListener('hashchange', handleRoute);
+  bindTodayListeners();
   bindAddForms();
   bindSettingsListeners();
   bindKeyboardShortcuts();

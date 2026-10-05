@@ -239,6 +239,106 @@ body {
   transition: width 0.2s ease;
 }
 
+/* Daily Reflection Note Input */
+.daily-note-container {
+  margin-top: 16px;
+  margin-bottom: 16px;
+}
+
+.daily-note-input {
+  width: 100%;
+  font-family: var(--font-body);
+  font-size: 14px;
+  font-weight: 400;
+  letter-spacing: -0.1px;
+  line-height: 1.45;
+  color: var(--text-main);
+  background: transparent;
+  border: none;
+  border-bottom: 1px dashed var(--border-hairline);
+  padding: 6px 0;
+  transition: border-color 0.15s ease;
+}
+
+.daily-note-input:focus {
+  outline: none;
+  border-bottom: 1px solid var(--text-muted);
+}
+
+.daily-note-input::placeholder {
+  color: var(--text-muted);
+  font-style: italic;
+  opacity: 0.75;
+}
+
+/* Today Toolbar & Filter Tabs */
+.today-toolbar {
+  margin-top: 12px;
+  margin-bottom: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.filter-tabs {
+  display: flex;
+  gap: 16px;
+}
+
+.filter-tab {
+  font-family: var(--font-body);
+  font-size: 13px;
+  font-weight: 400;
+  color: var(--text-muted);
+  background: none;
+  border: none;
+  padding: 4px 0;
+  cursor: pointer;
+  letter-spacing: -0.1px;
+  border-bottom: 1px solid transparent;
+  transition: color 0.15s ease, border-color 0.15s ease;
+}
+
+.filter-tab:hover {
+  color: var(--text-main);
+}
+
+.filter-tab.active {
+  color: var(--text-main);
+  border-bottom-color: var(--text-main);
+}
+
+.filter-count {
+  font-size: 11px;
+  font-variant-numeric: tabular-nums;
+  opacity: 0.7;
+  margin-left: 2px;
+}
+
+/* All Done Banner */
+.all-done-banner {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 16px;
+  margin-top: 16px;
+  margin-bottom: 20px;
+  border: 1px solid var(--border-hairline);
+  background-color: rgba(0, 0, 0, 0.02);
+  color: var(--text-muted);
+  font-size: 13px;
+  letter-spacing: -0.1px;
+}
+
+body.theme-dark .all-done-banner {
+  background-color: rgba(255, 255, 255, 0.03);
+}
+
+.all-done-symbol {
+  font-size: 12px;
+  color: var(--text-main);
+}
+
 /* Habit Row Items */
 .habit-list {
   list-style: none;
@@ -823,6 +923,43 @@ body.theme-dark .day-toggle-btn.active {
   font-size: 14px;
   font-weight: 700;
   margin-bottom: 12px;
+}
+
+.inspector-note-box {
+  margin-bottom: 14px;
+}
+
+.inspector-note-label {
+  display: block;
+  font-family: var(--font-heading);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: -0.3px;
+  color: var(--text-muted);
+  margin-bottom: 4px;
+}
+
+.inspector-note-input {
+  width: 100%;
+  font-family: var(--font-body);
+  font-size: 13px;
+  padding: 6px 8px;
+  background-color: transparent;
+  border: 1px solid var(--border-hairline);
+  border-radius: 2px;
+  color: var(--text-main);
+  letter-spacing: -0.1px;
+}
+
+.inspector-note-input:focus {
+  outline: none;
+  border-color: var(--text-muted);
+}
+
+.inspector-note-input::placeholder {
+  color: var(--text-muted);
+  font-style: italic;
+  opacity: 0.75;
 }
 
 .inspector-list {

@@ -36,6 +36,37 @@
             <div id="today-progress-fill" class="progress-fill"></div>
           </div>
         </div>
+
+        <div class="daily-note-container">
+          <input
+            type="text"
+            id="today-daily-note-input"
+            class="daily-note-input"
+            placeholder="Add a note for today... (press 'o' to focus)"
+            maxlength="120"
+            autocomplete="off"
+            aria-label="Daily reflection note"
+          >
+        </div>
+
+        <div class="today-toolbar">
+          <div class="filter-tabs" role="tablist" aria-label="Habit filters">
+            <button type="button" class="filter-tab active" data-filter="all" id="tab-filter-all">
+              All <span class="filter-count" id="filter-count-all">0</span>
+            </button>
+            <button type="button" class="filter-tab" data-filter="remaining" id="tab-filter-remaining">
+              Remaining <span class="filter-count" id="filter-count-remaining">0</span>
+            </button>
+            <button type="button" class="filter-tab" data-filter="now" id="tab-filter-now">
+              Now <span class="filter-count" id="filter-count-now">0</span>
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <div id="today-all-done" class="all-done-banner" hidden>
+        <span class="all-done-symbol">✓</span>
+        <span id="all-done-text">All habits completed for today.</span>
       </div>
 
       <div id="today-groups-container"></div>
@@ -180,6 +211,10 @@
         <!-- Past Day Inspector Panel -->
         <div id="past-day-inspector" class="past-day-inspector" hidden>
           <div class="inspector-title" id="inspector-date-title">Past Day Inspection</div>
+          <div class="inspector-note-box">
+            <span class="inspector-note-label">NOTE</span>
+            <input type="text" id="inspector-daily-note-input" class="inspector-note-input" placeholder="No note recorded for this day" maxlength="120" autocomplete="off">
+          </div>
           <ul id="inspector-habits-list" class="inspector-list"></ul>
         </div>
       </div>

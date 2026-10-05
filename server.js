@@ -47,6 +47,11 @@ db.exec(`
     key TEXT PRIMARY KEY,
     value TEXT NOT NULL
   );
+
+  CREATE TABLE IF NOT EXISTS daily_notes (
+    date_str TEXT PRIMARY KEY,
+    note TEXT NOT NULL
+  );
 `);
 
 // Middleware
@@ -342,6 +347,15 @@ if (habitCount === 0) {
   seedSampleData();
 }
 
+function getDailyNotes() {
+  const rows = db.prepare('SELECT date_str, note FROM daily_notes').all();
+  const notes = {};
+  for (const r of rows) {
+    notes[r.date_str] = r.note;
+  }
+  return notes;
+}
+
 /**
  * ============================================================================
  * REST API Routes
@@ -353,12 +367,13 @@ app.get('/api/state', (req, res) => {
   res.json({
     version: 1,
     habits: getHabitsWithCompletions(),
-    settings: getSettings()
+    settings: getSettings(),
+    notes: getDailyNotes()
   });
 });
 
 app.post('/api/state', (req, res) => {
-  const { version, habits, settings, mode } = req.body;
+  const { version, habits, settings, notes, mode } = req.body;
   if (version !== 1) {
     return res.status(400).json({ error: 'Version mismatch. Expected version 1.' });
   }
@@ -366,6 +381,7 @@ app.post('/api/state', (req, res) => {
   if (mode === 'replace') {
     db.exec('DELETE FROM completions;');
     db.exec('DELETE FROM habits;');
+    db.exec('DELETE FROM daily_notes;');
   }
 
   const insertHabit = db.prepare(`
@@ -408,10 +424,20 @@ app.post('/api/state', (req, res) => {
     }
   }
 
+  if (notes && typeof notes === 'object') {
+    const insertNote = db.prepare('INSERT OR REPLACE INTO daily_notes (date_str, note) VALUES (?, ?)');
+    for (const [dStr, noteText] of Object.entries(notes)) {
+      if (noteText && typeof noteText === 'string') {
+        insertNote.run(dStr, noteText);
+      }
+    }
+  }
+
   res.json({
     version: 1,
     habits: getHabitsWithCompletions(),
-    settings: getSettings()
+    settings: getSettings(),
+    notes: getDailyNotes()
   });
 });
 
@@ -545,6 +571,24 @@ app.post('/api/habits/:id/count', (req, res) => {
   res.json({ success: true, count: nextCount });
 });
 
+// Daily Notes
+app.get('/api/notes/:dateStr', (req, res) => {
+  const { dateStr } = req.params;
+  const row = db.prepare('SELECT note FROM daily_notes WHERE date_str = ?').get(dateStr);
+  res.json({ dateStr, note: row ? row.note : '' });
+});
+
+app.put('/api/notes/:dateStr', (req, res) => {
+  const { dateStr } = req.params;
+  const { note } = req.body;
+  if (!note || !note.trim()) {
+    db.prepare('DELETE FROM daily_notes WHERE date_str = ?').run(dateStr);
+  } else {
+    db.prepare('INSERT OR REPLACE INTO daily_notes (date_str, note) VALUES (?, ?)').run(dateStr, note.trim());
+  }
+  res.json({ success: true, dateStr, note: (note || '').trim() });
+});
+
 // Settings
 app.get('/api/settings', (req, res) => {
   res.json(getSettings());
@@ -561,12 +605,13 @@ app.put('/api/settings', (req, res) => {
 app.post('/api/reset', (req, res) => {
   db.exec('DELETE FROM completions;');
   db.exec('DELETE FROM habits;');
+  db.exec('DELETE FROM daily_notes;');
   res.json({ success: true });
 });
 
 app.post('/api/seed', (req, res) => {
   seedSampleData();
-  res.json({ success: true, state: { habits: getHabitsWithCompletions(), settings: getSettings() } });
+  res.json({ success: true, state: { habits: getHabitsWithCompletions(), settings: getSettings(), notes: getDailyNotes() } });
 });
 
 // Start Server
