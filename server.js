@@ -55,8 +55,14 @@ db.exec(`
 `);
 
 // Middleware
+app.use((req, res, next) => {
+  res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
+  res.setHeader('Pragma', 'no-cache');
+  res.setHeader('Expires', '0');
+  next();
+});
 app.use(express.json({ limit: '10mb' }));
-app.use(express.static(__dirname));
+app.use(express.static(__dirname, { etag: false, lastModified: false }));
 
 /**
  * Default Settings

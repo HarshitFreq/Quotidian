@@ -678,6 +678,9 @@ function renderTodayView() {
   const todayStr = toLocalDateString(today);
   const currentTimePeriod = getCurrentTimeOfDay(today);
 
+  // Render the current hourly live quote
+  renderHourlyQuote();
+
   // Date Header
   const dateLine = document.getElementById('today-date-line');
   if (dateLine) {
