@@ -1,0 +1,353 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Quotidian</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body class="theme-system">
+  <!-- Sticky Top Bar -->
+  <div class="top-bar-wrapper">
+    <header class="top-bar">
+      <div class="top-bar-left">
+        <a href="#today" class="wordmark">Quotidian</a>
+        <nav class="nav-links" aria-label="Views">
+          <a href="#today" class="nav-link active" data-view="today">Today</a>
+          <a href="#habits" class="nav-link" data-view="habits">Habits</a>
+          <a href="#review" class="nav-link" data-view="review">Review</a>
+          <a href="#settings" class="nav-link" data-view="settings">Settings</a>
+        </nav>
+      </div>
+      <div class="top-bar-right">
+        <span id="top-bar-count" class="today-count-badge">0/0 today</span>
+      </div>
+    </header>
+  </div>
+
+  <main class="container">
+    <!-- VIEW 1: TODAY -->
+    <section id="view-today" class="view-panel active">
+      <div class="today-header">
+        <div id="today-date-line" class="today-date-line"></div>
+        <div class="progress-container">
+          <div id="today-progress-text" class="progress-text">0 of 0</div>
+          <div class="progress-track" aria-hidden="true">
+            <div id="today-progress-fill" class="progress-fill"></div>
+          </div>
+        </div>
+      </div>
+
+      <div id="today-groups-container"></div>
+      <div id="today-empty-state" class="empty-state" hidden>Nothing for today.</div>
+
+      <div class="inline-add-row">
+        <input
+          type="text"
+          id="today-quick-add-input"
+          class="input-field"
+          placeholder="Add a habit (press Enter)"
+          maxlength="40"
+          autocomplete="off"
+        >
+      </div>
+    </section>
+
+    <!-- VIEW 2: HABITS (LIBRARY) -->
+    <section id="view-habits" class="view-panel">
+      <div class="library-header">
+        <h2 class="section-title">Habits</h2>
+        <button type="button" id="toggle-add-form-btn" class="btn-secondary">+ New Habit</button>
+      </div>
+
+      <!-- Add Habit Form (Inline Disclosure) -->
+      <div id="add-habit-disclosure" class="form-disclosure" hidden>
+        <h3 class="form-title">New Habit</h3>
+        <form id="full-add-form" autocomplete="off">
+          <div class="form-grid">
+            <div class="form-group full-width">
+              <label for="form-name" class="form-label">Name (required)</label>
+              <input type="text" id="form-name" class="form-input" maxlength="40" required placeholder="e.g. Read 20 pages">
+            </div>
+
+            <div class="form-group full-width">
+              <label for="form-note" class="form-label">Note (optional)</label>
+              <input type="text" id="form-note" class="form-input" maxlength="100" placeholder="e.g. Fiction or non-fiction">
+            </div>
+
+            <div class="form-group">
+              <label for="form-schedule-type" class="form-label">Schedule</label>
+              <select id="form-schedule-type" class="form-select">
+                <option value="everyday">Every day</option>
+                <option value="weekdays">Weekdays (Mon–Fri)</option>
+                <option value="weekends">Weekends (Sat–Sun)</option>
+                <option value="custom">Custom days</option>
+              </select>
+            </div>
+
+            <div class="form-group" id="custom-days-group" hidden>
+              <label class="form-label">Custom Days</label>
+              <div class="day-toggles" id="custom-days-toggles">
+                <button type="button" class="day-toggle-btn active" data-day="1">Mon</button>
+                <button type="button" class="day-toggle-btn active" data-day="2">Tue</button>
+                <button type="button" class="day-toggle-btn active" data-day="3">Wed</button>
+                <button type="button" class="day-toggle-btn active" data-day="4">Thu</button>
+                <button type="button" class="day-toggle-btn active" data-day="5">Fri</button>
+                <button type="button" class="day-toggle-btn" data-day="6">Sat</button>
+                <button type="button" class="day-toggle-btn" data-day="0">Sun</button>
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label for="form-target-type" class="form-label">Target</label>
+              <select id="form-target-type" class="form-select">
+                <option value="boolean">Once a day</option>
+                <option value="count">Count (e.g. 8 glasses)</option>
+              </select>
+            </div>
+
+            <div class="form-group" id="target-count-group" hidden>
+              <label for="form-target-count" class="form-label">Target Count (1–10)</label>
+              <input type="number" id="form-target-count" class="form-input" min="1" max="10" value="8">
+            </div>
+
+            <div class="form-group">
+              <label for="form-group" class="form-label">Time of Day Group</label>
+              <select id="form-group" class="form-select">
+                <option value="Anytime">Anytime</option>
+                <option value="Morning">Morning</option>
+                <option value="Afternoon">Afternoon</option>
+                <option value="Evening">Evening</option>
+              </select>
+            </div>
+
+            <div class="form-group">
+              <label for="form-color" class="form-label">Left Tick Color</label>
+              <select id="form-color" class="form-select">
+                <option value="none">None</option>
+                <option value="stone">Stone</option>
+                <option value="ink">Ink</option>
+                <option value="olive">Olive</option>
+                <option value="rust">Rust</option>
+                <option value="blue">Blue</option>
+                <option value="sand">Sand</option>
+              </select>
+            </div>
+
+            <div class="form-group">
+              <label for="form-start-date" class="form-label">Start Date</label>
+              <input type="date" id="form-start-date" class="form-input">
+            </div>
+          </div>
+
+          <div class="form-actions">
+            <button type="button" id="cancel-add-btn" class="btn-secondary">Cancel</button>
+            <button type="submit" class="btn-primary">Save Habit</button>
+          </div>
+        </form>
+      </div>
+
+      <div id="habit-cap-warning" class="error-banner" hidden>Active habit limit (24) reached. Archive or remove habits to add new ones.</div>
+
+      <!-- Habit Items List -->
+      <div id="library-list"></div>
+      <div id="library-empty-state" class="empty-state" hidden>Nothing for today.</div>
+    </section>
+
+    <!-- VIEW 3: REVIEW -->
+    <section id="view-review" class="view-panel">
+      <h2 class="section-title">Review</h2>
+
+      <!-- 7-Day Week Strip -->
+      <div class="review-section">
+        <h3 class="group-label">THIS WEEK</h3>
+        <div class="week-strip-container">
+          <table class="week-strip-table">
+            <thead>
+              <tr id="week-strip-header"></tr>
+            </thead>
+            <tbody id="week-strip-body"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Month Calendar Grid -->
+      <div class="review-section">
+        <h3 class="group-label">MONTH</h3>
+        <div class="review-subtitle" id="month-name-display"></div>
+        <div class="month-calendar" id="month-calendar-grid"></div>
+
+        <!-- Past Day Inspector Panel -->
+        <div id="past-day-inspector" class="past-day-inspector" hidden>
+          <div class="inspector-title" id="inspector-date-title">Past Day Inspection</div>
+          <ul id="inspector-habits-list" class="inspector-list"></ul>
+        </div>
+      </div>
+
+      <!-- Year Heatmap -->
+      <div class="review-section">
+        <div class="heatmap-header-row">
+          <h3 class="group-label">YEAR</h3>
+          <div class="heatmap-controls">
+            <select id="heatmap-habit-select" class="form-select heatmap-select" aria-label="Select habit for heatmap">
+              <option value="all">All habits</option>
+            </select>
+            <div class="year-stepper">
+              <button type="button" id="heatmap-prev-year-btn" class="text-btn year-step-btn" aria-label="Previous year">←</button>
+              <span id="heatmap-year-label" class="year-label">2026</span>
+              <button type="button" id="heatmap-next-year-btn" class="text-btn year-step-btn" aria-label="Next year">→</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="heatmap-container" id="heatmap-container"></div>
+        <div id="heatmap-summary" class="heatmap-summary"></div>
+      </div>
+
+      <!-- Streaks & 28-Day Stats -->
+      <div class="review-section">
+        <h3 class="group-label">PERFORMANCE</h3>
+        <table class="stats-table">
+          <thead>
+            <tr>
+              <th>Habit</th>
+              <th class="num">Current</th>
+              <th class="num">Best</th>
+              <th class="num">28-Day Rate</th>
+            </tr>
+          </thead>
+          <tbody id="stats-table-body"></tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- VIEW 4: SETTINGS -->
+    <section id="view-settings" class="view-panel">
+      <h2 class="section-title">Settings</h2>
+
+      <div id="settings-error-banner" class="error-banner" hidden></div>
+
+      <div class="settings-group">
+        <h3 class="group-label">PREFERENCES</h3>
+
+        <div class="settings-item">
+          <div class="settings-info">
+            <span class="settings-title">Week starts on</span>
+            <span class="settings-desc">Choose start of week for calendar views</span>
+          </div>
+          <select id="setting-week-start" class="form-select">
+            <option value="monday">Monday</option>
+            <option value="sunday">Sunday</option>
+          </select>
+        </div>
+
+        <div class="settings-item">
+          <div class="settings-info">
+            <span class="settings-title">Show archived habits</span>
+            <span class="settings-desc">Keep archived habits accessible in Habits library</span>
+          </div>
+          <input type="checkbox" id="setting-show-archived" class="checkbox-input-native">
+        </div>
+
+        <div class="settings-item">
+          <div class="settings-info">
+            <span class="settings-title">Density</span>
+            <span class="settings-desc">Row height and whitespace scale</span>
+          </div>
+          <select id="setting-density" class="form-select">
+            <option value="comfortable">Comfortable</option>
+            <option value="compact">Compact</option>
+          </select>
+        </div>
+
+        <div class="settings-item">
+          <div class="settings-info">
+            <span class="settings-title">Reduce motion</span>
+            <span class="settings-desc">Disable interface transitions</span>
+          </div>
+          <input type="checkbox" id="setting-reduce-motion" class="checkbox-input-native">
+        </div>
+
+        <div class="settings-item">
+          <div class="settings-info">
+            <span class="settings-title">Color scheme</span>
+            <span class="settings-desc">Light (#f7f6f4) or follow system scheme</span>
+          </div>
+          <select id="setting-theme" class="form-select">
+            <option value="light">Force Light</option>
+            <option value="system">Follow System</option>
+          </select>
+        </div>
+
+        <div class="settings-item">
+          <div class="settings-info">
+            <span class="settings-title">Date format</span>
+            <span class="settings-desc">How dates appear across views</span>
+          </div>
+          <select id="setting-date-format" class="form-select">
+            <option value="weekday_day_month">Monday, 5 Oct</option>
+            <option value="day_month_year">5 Oct 2026</option>
+          </select>
+        </div>
+
+        <div class="settings-item">
+          <div class="settings-info">
+            <span class="settings-title">Confirm deletion</span>
+            <span class="settings-desc">Require confirmation before permanent deletion</span>
+          </div>
+          <input type="checkbox" id="setting-confirm-delete" class="checkbox-input-native">
+        </div>
+      </div>
+
+      <!-- Data Portability -->
+      <div class="settings-group">
+        <h3 class="group-label">DATA</h3>
+
+        <div class="settings-item">
+          <div class="settings-info">
+            <span class="settings-title">Sample test data</span>
+            <span class="settings-desc">Load realistic habits and history across 2026 for testing</span>
+          </div>
+          <button type="button" id="load-sample-data-btn" class="btn-secondary">Load Sample Data</button>
+        </div>
+
+        <div class="settings-item">
+          <div class="settings-info">
+            <span class="settings-title">Export JSON</span>
+            <span class="settings-desc">Download a complete backup of your habits and history</span>
+          </div>
+          <button type="button" id="export-json-btn" class="btn-secondary">Export</button>
+        </div>
+
+        <div class="settings-item">
+          <div class="settings-info">
+            <span class="settings-title">Import JSON</span>
+            <span class="settings-desc">Restore habits from a valid JSON backup file</span>
+          </div>
+          <div class="action-btn-group">
+            <select id="import-mode" class="form-select">
+              <option value="merge">Merge</option>
+              <option value="replace">Replace</option>
+            </select>
+            <input type="file" id="import-file-input" accept=".json" hidden>
+            <button type="button" id="trigger-import-btn" class="btn-secondary">Import...</button>
+          </div>
+        </div>
+
+        <div class="settings-item" style="align-items: flex-start; flex-direction: column;">
+          <div class="settings-info">
+            <span class="settings-title">Reset all data</span>
+            <span class="settings-desc">Type "delete" below to clear all habits, completions, and settings.</span>
+          </div>
+          <div class="reset-box">
+            <input type="text" id="reset-confirm-input" class="form-input reset-input" placeholder="Type delete">
+            <button type="button" id="reset-data-btn" class="btn-secondary" disabled>Reset</button>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <script src="app.js"></script>
+</body>
+</html>
