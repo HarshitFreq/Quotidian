@@ -89,6 +89,56 @@ let selectedPastDate = null;
 let heatmapYear = null;
 let selectedHeatmapHabitId = 'all';
 let focusedHabitIndex = 0;
+let lastRenderedQuoteHour = null;
+
+/**
+ * Curated list of quiet, thoughtful quotes on consistency, craft, and daily living.
+ */
+const HOURLY_QUOTES = [
+  { text: "How we spend our days is, of course, how we spend our lives.", author: "Annie Dillard" },
+  { text: "We are what we repeatedly do. Excellence, then, is not an act, but a habit.", author: "Will Durant" },
+  { text: "First say to yourself what you would be; and then do what you have to do.", author: "Epictetus" },
+  { text: "It is not that we have a short time to live, but that we waste a lot of it.", author: "Seneca" },
+  { text: "The impediment to action advances action. What stands in the way becomes the way.", author: "Marcus Aurelius" },
+  { text: "A journey of a thousand miles begins with a single step.", author: "Lao Tzu" },
+  { text: "Simplicity is about subtracting the obvious and adding the meaningful.", author: "John Maeda" },
+  { text: "You do not rise to the level of your goals. You fall to the level of your systems.", author: "James Clear" },
+  { text: "Quiet minds cannot be perplexed or frightened, but go on at their own private pace.", author: "Robert Louis Stevenson" },
+  { text: "Nature does not hurry, yet everything is accomplished.", author: "Lao Tzu" },
+  { text: "Nothing is so fatigue-inducing as the eternal hanging on of an uncompleted task.", author: "William James" },
+  { text: "Day by day, what you choose, what you think and what you do is who you become.", author: "Heraclitus" },
+  { text: "The art of being wise is the art of knowing what to overlook.", author: "William James" },
+  { text: "Life is available only in the present moment.", author: "Thich Nhat Hanh" },
+  { text: "Concentrate every minute like a Roman on doing what is in front of you with genuine seriousness.", author: "Marcus Aurelius" },
+  { text: "Patience is also a form of action.", author: "Auguste Rodin" },
+  { text: "Order your soul. Reduce your wants.", author: "Augustine" },
+  { text: "Make each day your masterpiece.", author: "John Wooden" },
+  { text: "In the depth of winter, I finally learned that within me there lay an invincible summer.", author: "Albert Camus" },
+  { text: "Do not wait; the time will never be 'just right.' Start where you stand.", author: "Napoleon Hill" },
+  { text: "Action is the foundational key to all success.", author: "Pablo Picasso" },
+  { text: "An ounce of practice is generally worth more than a ton of theory.", author: "E. F. Schumacher" },
+  { text: "He who has a why to live can bear almost any how.", author: "Friedrich Nietzsche" },
+  { text: "Well begun is half done.", author: "Aristotle" }
+];
+
+function getHourlyQuote(date = getEffectiveDate()) {
+  const epochHours = Math.floor(date.getTime() / (1000 * 60 * 60));
+  const idx = Math.abs(epochHours) % HOURLY_QUOTES.length;
+  return HOURLY_QUOTES[idx];
+}
+
+function renderHourlyQuote() {
+  const quoteTextEl = document.getElementById('today-quote-text');
+  const quoteAuthorEl = document.getElementById('today-quote-author');
+  if (!quoteTextEl || !quoteAuthorEl) return;
+
+  const date = getEffectiveDate();
+  lastRenderedQuoteHour = date.getHours();
+
+  const quote = getHourlyQuote(date);
+  quoteTextEl.textContent = `“${quote.text}”`;
+  quoteAuthorEl.textContent = `— ${quote.author}`;
+}
 
 /**
  * ============================================================================
@@ -844,6 +894,9 @@ function renderTodayView() {
     if (focusedHabitIndex >= habitElements.length) focusedHabitIndex = 0;
     habitElements[focusedHabitIndex].classList.add('focused');
   }
+
+  // Render the current hourly quote in the footer
+  renderHourlyQuote();
 }
 
 function toggleHabitCompletion(habitId, dateStr) {
@@ -2289,6 +2342,14 @@ function init() {
 
   // Connect to backend SQLite API if running as a web app
   syncFromBackend();
+
+  // Hourly quote transition timer (checks every 30 seconds)
+  setInterval(() => {
+    const curHour = getEffectiveDate().getHours();
+    if (curHour !== lastRenderedQuoteHour && getActiveRoute() === 'today') {
+      renderHourlyQuote();
+    }
+  }, 30000);
 }
 
 init();

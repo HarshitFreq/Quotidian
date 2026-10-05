@@ -526,6 +526,40 @@ body.theme-dark .habit-row.focused {
   border-bottom-color: var(--text-main);
 }
 
+/* Today Footer: Hourly Live Quote */
+.today-footer {
+  margin-top: 56px;
+  padding-top: 24px;
+  border-top: 1px solid var(--border-hairline);
+  text-align: center;
+}
+
+.today-quote-container {
+  display: inline-block;
+  max-width: 540px;
+  margin: 0 auto;
+}
+
+.today-quote-text {
+  font-family: var(--font-body);
+  font-size: 13px;
+  font-weight: 400;
+  line-height: 1.5;
+  color: var(--text-muted);
+  font-style: italic;
+  letter-spacing: -0.1px;
+  margin-bottom: 6px;
+}
+
+.today-quote-author {
+  font-family: var(--font-body);
+  font-size: 12px;
+  font-weight: 400;
+  color: var(--text-muted);
+  opacity: 0.75;
+  letter-spacing: -0.1px;
+}
+
 /* Buttons & Secondary Controls */
 .text-btn {
   background: none;
