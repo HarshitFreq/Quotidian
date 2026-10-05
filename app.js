@@ -636,6 +636,7 @@ function handleRoute() {
 function renderActiveView(route = getActiveRoute()) {
   applySettingsClasses();
   updateTopBarCount();
+  updateHabitsLibraryCounts();
 
   if (route === 'today') renderTodayView();
   else if (route === 'habits') renderHabitsView();
@@ -666,6 +667,15 @@ function updateTopBarCount() {
   if (badge) {
     badge.textContent = `${completed.length}/${scheduled.length} today`;
   }
+}
+
+function updateHabitsLibraryCounts() {
+  const countAllEl = document.getElementById('lib-count-all');
+  const countActiveEl = document.getElementById('lib-count-active');
+  const countArchivedEl = document.getElementById('lib-count-archived');
+  if (countAllEl) countAllEl.textContent = state.habits.length;
+  if (countActiveEl) countActiveEl.textContent = state.habits.filter((h) => !h.archived).length;
+  if (countArchivedEl) countArchivedEl.textContent = state.habits.filter((h) => h.archived).length;
 }
 
 /**
@@ -700,7 +710,8 @@ function renderTodayView() {
     const grp = h.group || 'Anytime';
     return grp === currentTimePeriod || grp === 'Anytime';
   });
-  const nowCount = nowHabits.length;
+  const nowRemainingCount = nowHabits.filter((h) => !isHabitCompletedOnDate(h, todayStr)).length;
+  const nowCount = nowRemainingCount;
 
   // Progress UI
   const progressText = document.getElementById('today-progress-text');
@@ -734,8 +745,9 @@ function renderTodayView() {
   // Quiet All Done banner
   const allDoneBanner = document.getElementById('today-all-done');
   const allDoneText = document.getElementById('all-done-text');
+  const isAllDone = totalCount > 0 && completedCount === totalCount;
   if (allDoneBanner) {
-    if (totalCount > 0 && completedCount === totalCount) {
+    if (isAllDone) {
       allDoneBanner.hidden = false;
       if (allDoneText) {
         allDoneText.textContent = `All ${totalCount} habits completed for today.`;
@@ -766,14 +778,19 @@ function renderTodayView() {
   }
 
   if (displayedHabits.length === 0) {
-    if (todayFilter === 'remaining' && totalCount > 0) {
+    if (isAllDone) {
+      // All done banner is already displayed, keep emptyState hidden to avoid duplicate messaging
+      emptyState.hidden = true;
+    } else if (todayFilter === 'remaining' && remainingCount === 0) {
       emptyState.textContent = 'All remaining habits are complete for today.';
+      emptyState.hidden = false;
     } else if (todayFilter === 'now') {
       emptyState.textContent = `No habits scheduled for ${currentTimePeriod.toLowerCase()}.`;
+      emptyState.hidden = false;
     } else {
       emptyState.textContent = 'Nothing for today.';
+      emptyState.hidden = false;
     }
-    emptyState.hidden = false;
     return;
   }
 
@@ -952,6 +969,7 @@ function updateHabitCount(habitId, dateStr, delta) {
  * ============================================================================
  */
 let editingHabitId = null;
+let habitsLibraryFilter = 'all'; // 'all' | 'active' | 'archived'
 
 function renderHabitsView() {
   const listEl = document.getElementById('library-list');
@@ -961,8 +979,22 @@ function renderHabitsView() {
 
   listEl.innerHTML = '';
 
-  const activeHabitsCount = state.habits.filter((h) => !h.archived).length;
-  const isCapped = activeHabitsCount >= MAX_ACTIVE_HABITS;
+  const totalAllCount = state.habits.length;
+  const activeHabits = state.habits.filter((h) => !h.archived);
+  const archivedHabits = state.habits.filter((h) => h.archived);
+  const isCapped = activeHabits.length >= MAX_ACTIVE_HABITS;
+
+  // Update Library Filter Tabs Counts & Active state
+  const countAllEl = document.getElementById('lib-count-all');
+  const countActiveEl = document.getElementById('lib-count-active');
+  const countArchivedEl = document.getElementById('lib-count-archived');
+  if (countAllEl) countAllEl.textContent = totalAllCount;
+  if (countActiveEl) countActiveEl.textContent = activeHabits.length;
+  if (countArchivedEl) countArchivedEl.textContent = archivedHabits.length;
+
+  document.querySelectorAll('[data-lib-filter]').forEach((tab) => {
+    tab.classList.toggle('active', tab.dataset.libFilter === habitsLibraryFilter);
+  });
 
   if (capWarningEl) {
     capWarningEl.hidden = !isCapped;
@@ -973,15 +1005,28 @@ function renderHabitsView() {
     toggleBtn.disabled = isCapped;
   }
 
-  let visibleHabits = state.settings.showArchivedInHabits
-    ? [...state.habits]
-    : state.habits.filter((h) => !h.archived);
+  let visibleHabits = state.habits;
+  if (habitsLibraryFilter === 'active') {
+    visibleHabits = activeHabits;
+  } else if (habitsLibraryFilter === 'archived') {
+    visibleHabits = archivedHabits;
+  } else {
+    visibleHabits = state.settings.showArchivedInHabits
+      ? [...state.habits]
+      : activeHabits;
+  }
 
   visibleHabits.sort((a, b) => (a.order || 0) - (b.order || 0));
 
   if (visibleHabits.length === 0) {
     if (emptyEl) {
-      emptyEl.textContent = 'Nothing for today.';
+      if (habitsLibraryFilter === 'archived') {
+        emptyEl.textContent = 'No archived habits.';
+      } else if (habitsLibraryFilter === 'active') {
+        emptyEl.textContent = 'No active habits.';
+      } else {
+        emptyEl.textContent = 'Nothing for today.';
+      }
       emptyEl.hidden = false;
     }
     return;
@@ -2303,6 +2348,25 @@ function bindTodayListeners() {
   }
 }
 
+function bindHabitsListeners() {
+  document.querySelectorAll('[data-lib-filter]').forEach((tab) => {
+    tab.addEventListener('click', () => {
+      habitsLibraryFilter = tab.dataset.libFilter || 'all';
+      renderHabitsView();
+    });
+  });
+
+  // Explicit click handling on nav links to guarantee view rendering
+  document.querySelectorAll('.nav-link').forEach((link) => {
+    link.addEventListener('click', () => {
+      const targetView = link.dataset.view;
+      if (window.location.hash === `#${targetView}`) {
+        renderActiveView(targetView);
+      }
+    });
+  });
+}
+
 function highlightFocusedRow(rows) {
   rows.forEach((r, i) => {
     r.classList.toggle('focused', i === focusedHabitIndex);
@@ -2342,6 +2406,7 @@ function bindHeatmapListeners() {
 function init() {
   window.addEventListener('hashchange', handleRoute);
   bindTodayListeners();
+  bindHabitsListeners();
   bindAddForms();
   bindSettingsListeners();
   bindKeyboardShortcuts();
